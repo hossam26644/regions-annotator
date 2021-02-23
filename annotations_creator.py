@@ -80,8 +80,8 @@ class AnnotationsCreator(object):
 
     def write_annotations(self):
         with open('somefile.txt', 'w') as the_file:
-            the_file.write('\n'.join(self.intergenic_lines))
-            the_file.write('\n'.join(self.interonic_lines))
-            the_file.write('\n'.join(self.flanking_exons))
-            the_file.write('\n'.join(self.internal_exons))
+            the_file.write('\n'.join(self.intergenic_lines) + '\n')
+            the_file.write('\n'.join(self.interonic_lines) + '\n')
+            the_file.write('\n'.join(self.flanking_exons) + '\n')
+            the_file.write('\n'.join(self.internal_exons) + '\n')
             the_file.write('\n'.join(self.UTRs))

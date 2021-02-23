@@ -14,7 +14,8 @@ class AnnotationsCreator(object):
         self.interonic_lines = []
         self.flanking_exons = []
         self.internal_exons = []
-        self.UTRs = []
+        self.UTRs5 = []
+        self.UTRs3 = []
         self.analyze_intergenic()
         self.write_annotations()
 
@@ -67,16 +68,12 @@ class AnnotationsCreator(object):
             last_exon_end = exon.end_pos
 
     def creat_UTRs(self, transcript):
-        self.check_UTRs(transcript)
-        for utr in transcript.UTRs:
-            self.UTRs.append(Line.create_line_by_name_and_region("UTR", utr))
 
-    def check_UTRs(self, transcript):
-        if len(transcript.UTRs) >= 2:
-            return
-        else:
-            pass
-            #raise ValueError("transcript does not have 2 UTRs")
+        for utr in transcript.UTRs5:
+            self.UTRs5.append(Line.create_line_by_name_and_region("5UTR", utr))
+        for utr in transcript.UTRs3:
+            self.UTRs3.append(Line.create_line_by_name_and_region("3UTR", utr))
+
 
     def write_annotations(self):
         with open('somefile.txt', 'w') as the_file:
@@ -84,4 +81,5 @@ class AnnotationsCreator(object):
             the_file.write('\n'.join(self.interonic_lines) + '\n')
             the_file.write('\n'.join(self.flanking_exons) + '\n')
             the_file.write('\n'.join(self.internal_exons) + '\n')
-            the_file.write('\n'.join(self.UTRs))
+            the_file.write('\n'.join(self.UTRs5) + '\n')
+            the_file.write('\n'.join(self.UTRs3) + '\n')

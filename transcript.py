@@ -14,11 +14,12 @@ class Transcript(Line):
         self.is_pseudo = True
         self.CDSs = []
         self.exons = []
-        self.UTRs = []
+        self.UTRs5 = []
+        self.UTRs3 = []
         self.line_types = {"exon":self.add_exon,
                            "CDS": self.add_CDS,
-                           "5UTR":self.add_UTR,
-                           "3UTR":self.add_UTR,
+                           "5UTR":self.add_5UTR,
+                           "3UTR":self.add_3UTR,
                            "start_codon":self.add_start_codon,
                            "stop_codon":self.add_stop_codon}
 
@@ -33,8 +34,11 @@ class Transcript(Line):
         self.is_pseudo = False
         self.CDSs.append(line)
 
-    def add_UTR(self, line):
-        self.UTRs.append(line)
+    def add_3UTR(self, line):
+        self.UTRs3.append(line)
+
+    def add_5UTR(self, line):
+        self.UTRs5.append(line)
 
     def add_start_codon(self, line):
         pass

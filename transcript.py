@@ -7,6 +7,7 @@ class Transcript(Line):
         self.chr = line.chr
         self.start_pos = line.start_pos
         self.end_pos = line.end_pos
+        self.length = int(self.end_pos) - int(self.start_pos)
         self.negative_dir = line.negative_dir
         self.gene_id = line.attrs['gene_id']
         self.transcript_id = line.attrs['transcript_id']
@@ -46,3 +47,38 @@ class Transcript(Line):
     def add_stop_codon(self, line):
         pass
 
+class Transcripts(object):
+
+    def __init__(self):
+        self.transcripts = {} #dict of chromosome names (keys), and a list of dictionaries
+                              #of transcript start sites (keys) and transcripts (values)
+        self.current_transcript = None
+
+    def is_location_availble(self, line):
+        '''checks if there is another transcript starts from the same site'''
+        self.check_chrom(line.chr)
+        if line.start_pos in self.transcripts[line.chr]:
+            return False
+        return True
+
+    def add_transcript(self, line):
+        self.check_chrom(line.chr)
+        transcript = Transcript(line)
+        self.transcripts[transcript.chr][transcript.start_pos] = transcript
+        self.current_transcript = transcript
+
+
+    def use_longer_transcript(self, new_transc_line):
+        self.current_transcript = Transcript(new_transc_line)
+        original_transcript = self.transcripts[new_transc_line.chr][new_transc_line.start_pos]
+        if new_transc_line.length > original_transcript.length:
+            self.transcripts[new_transc_line.chr][new_transc_line.start_pos] = self.current_transcript
+
+    def check_chrom(self, chrome):
+        try:
+            self.transcripts[chrome]
+        except KeyError:
+            self.transcripts[chrome] = {}
+
+    def add_line(self, line):
+        self.current_transcript.add_line(line)

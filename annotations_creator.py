@@ -2,36 +2,44 @@ from line import Line
 
 class AnnotationsCreator(object):
 
-    def __init__(self, transcripts, transcript_keys=None):
-        if transcript_keys is None:
-            self.transcript_keys = list(transcript_keys.keys())
-        else:
-            self.transcript_keys = transcript_keys
-        self.transcript_keys.sort(key=int)
+    def __init__(self, transcripts, filename='somefile.txt'):
 
-        self.transcripts = transcripts
-        self.intergenic_lines = []
-        self.interonic_lines = []
-        self.flanking_exons = []
-        self.internal_exons = []
-        self.UTRs5 = []
-        self.UTRs3 = []
-        self.analyze_intergenic()
-        self.write_annotations()
+        transcripts_dic = transcripts.transcripts
+        self.clear_file(filename)
+        for chromosome in transcripts_dic.keys():
+            self.transcripts = transcripts_dic[chromosome]
+            self.transcript_keys = list(self.transcripts.keys())
+            self.transcript_keys.sort(key=int)
+            self.intergenic_lines = []
+            self.interonic_lines = []
+            self.flanking_exons = []
+            self.internal_exons = []
+            self.UTRs5 = []
+            self.UTRs3 = []
+            self.analyze_intergenic()
+            self.write_annotations(filename)
 
     def analyze_intergenic(self):
         last_transcript_end = None
+        last_transcript_neg = None
 
         for key in self.transcript_keys:
             transcript = self.transcripts[key]
 
             if last_transcript_end is None:
                 last_transcript_end = transcript.end_pos
+                last_transcript_neg = transcript.negative_dir
+
             else:
-                self.intergenic_lines.append(Line.creat_line_by_name_and_corr("Intergenic",
+                sign = "-" if last_transcript_neg and transcript.negative_dir else "+"
+
+                self.intergenic_lines.append(Line.creat_line_by_name_and_corr(transcript.chr,
+                                                                              "Intergenic",
                                                                               last_transcript_end,
-                                                                              transcript.start_pos))
+                                                                              transcript.start_pos,
+                                                                              sign=sign))
                 last_transcript_end = transcript.end_pos
+                last_transcript_neg = transcript.negative_dir
 
             self.analyze_interonics(transcript)
 
@@ -47,8 +55,8 @@ class AnnotationsCreator(object):
 
     def creat_flanking_and_internal_exons(self, transcript):
         transcript.CDSs.sort()
-        transcript.CDSs[0].type = "flanking_exon"
-        transcript.CDSs[-1].type = "flanking_exon"
+        transcript.CDSs[0].type = "first_coding_exon"
+        transcript.CDSs[-1].type = "last_coding_exon"
         self.flanking_exons.append(str(transcript.CDSs[0]))
         self.flanking_exons.append(str(transcript.CDSs[-1]))
         for exon in transcript.CDSs[1:-1]:
@@ -61,10 +69,11 @@ class AnnotationsCreator(object):
         transcript.exons.sort()
         last_exon_end = transcript.exons[0].end_pos
         for exon in transcript.exons[1:]:
-            self.interonic_lines.append(Line.creat_line_by_name_and_corr("intron",
-                                                                          last_exon_end,
-                                                                          exon.start_pos,
-                                                                          sign="-" if exon.negative_dir else "+"))
+            self.interonic_lines.append(Line.creat_line_by_name_and_corr(exon.chr,
+                                                                         "intron",
+                                                                         last_exon_end,
+                                                                         exon.start_pos,
+                                                                         sign="-" if exon.negative_dir else "+"))
             last_exon_end = exon.end_pos
 
     def creat_UTRs(self, transcript):
@@ -75,11 +84,22 @@ class AnnotationsCreator(object):
             self.UTRs3.append(Line.create_line_by_name_and_region("3UTR", utr))
 
 
-    def write_annotations(self):
-        with open('somefile.txt', 'w') as the_file:
-            the_file.write('\n'.join(self.intergenic_lines) + '\n')
-            the_file.write('\n'.join(self.interonic_lines) + '\n')
-            the_file.write('\n'.join(self.flanking_exons) + '\n')
-            the_file.write('\n'.join(self.internal_exons) + '\n')
-            the_file.write('\n'.join(self.UTRs5) + '\n')
-            the_file.write('\n'.join(self.UTRs3) + '\n')
+    def write_annotations(self, filename):
+        with open(filename, 'a') as the_file:
+            the_file.write(self.get_annotation_string(self.intergenic_lines))
+            the_file.write(self.get_annotation_string(self.interonic_lines))
+            the_file.write(self.get_annotation_string(self.flanking_exons))
+            the_file.write(self.get_annotation_string(self.internal_exons))
+            the_file.write(self.get_annotation_string(self.intergenic_lines))
+            the_file.write(self.get_annotation_string(self.UTRs5))
+            the_file.write(self.get_annotation_string(self.UTRs3))
+
+
+    def get_annotation_string(self, annotation):
+        if annotation == []:
+            return ''
+        return ('\n'.join(annotation) + '\n')
+
+    def clear_file(self, filename):
+        with open(filename, 'w') as the_file:
+            the_file.write('')

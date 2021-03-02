@@ -1,4 +1,5 @@
 from copy import deepcopy
+import sys
 class Line(object):
     DEFAULT_ATTR = ["chr1", "refGene", "type", "0", "0", ".", "+", ".", " "]
 
@@ -9,6 +10,7 @@ class Line(object):
         self.type = line[2]
         self.start_pos = line[3]
         self.end_pos = line[4]
+        self.length = int(self.end_pos) - int(self.start_pos)
         self.negative_dir = (line[6] == "-")
         self.frame = line[7]
         self.attrs = {}
@@ -18,8 +20,9 @@ class Line(object):
             self.attrs[attr[0]] = attr[1].split('\"')[1]
 
     @staticmethod
-    def creat_line_by_name_and_corr(name, start_pos, end_pos, sign="+"):
+    def creat_line_by_name_and_corr(chrom, name, start_pos, end_pos, sign="+"):
         attrs = deepcopy(Line.DEFAULT_ATTR)
+        attrs[0] = chrom
         attrs[2] = name
         attrs[3] = start_pos
         attrs[4] = end_pos
@@ -30,6 +33,7 @@ class Line(object):
     @staticmethod
     def create_line_by_name_and_region(name, region):
         attrs = deepcopy(Line.DEFAULT_ATTR)
+        attrs[0] = region.chr
         attrs[2] = name
         attrs[3] = region.start_pos
         attrs[4] = region.end_pos
@@ -53,3 +57,11 @@ class Line(object):
             attr[8] += (key)
             attr[8] += (" \"" + value + "\"; ")
         return "\t".join(attr)
+
+    @staticmethod
+    def print_progres(current_progress, max_progress):
+        """
+        docstring
+        """
+        if current_progress%1000 == 0:
+            sys.stderr.write("%.f%% done.\r" %(100.*current_progress/max_progress))

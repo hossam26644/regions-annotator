@@ -1,10 +1,8 @@
 .vscode
-
-*.pyc
 *.pyc
 .pytest_cache
 .~*
 *.maf
 *.gtf
 somefile.txt
-somefile.txt
+*.txt

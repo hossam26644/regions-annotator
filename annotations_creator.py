@@ -10,10 +10,14 @@ class AnnotationsCreator(object):
             self.transcripts = transcripts_dic[chromosome]
             self.transcript_keys = list(self.transcripts.keys())
             self.transcript_keys.sort(key=int)
+
             self.intergenic_lines = []
             self.interonic_lines = []
             self.flanking_exons = []
             self.internal_exons = []
+            self.one_exons = []
+            self.first_of_twos = []
+            self.second_of_twos = []
             self.UTRs5 = []
             self.UTRs3 = []
             self.analyze_intergenic()
@@ -24,7 +28,7 @@ class AnnotationsCreator(object):
         last_transcript_neg = None
 
         for key in self.transcript_keys:
-            transcript = self.transcripts[key]
+            transcript = self.transcripts[key] #loop through certain chrom transcripts in order
 
             if last_transcript_end is None:
                 last_transcript_end = transcript.end_pos
@@ -50,11 +54,25 @@ class AnnotationsCreator(object):
             self.creat_UTRs(transcript)
             if len(transcript.exons) > 1:
                 self.creat_intronics(transcript)
+
             if len(transcript.CDSs) > 2:
                 self.creat_flanking_and_internal_exons(transcript)
+            else:
+                self.creat_one_or_two_exons(transcript)
+
+    def creat_one_or_two_exons(self, transcript):
+        if len(transcript.CDSs) == 1:
+            transcript.CDSs[0].type = "one_exon"
+            self.one_exons.append(str(transcript.CDSs[0]))
+        elif len(transcript.CDSs) == 2:
+            transcript.CDSs.sort(reverse=transcript.negative_dir)
+            transcript.CDSs[0].type = "first_of_twos"
+            transcript.CDSs[-1].type = "second_of_twos"
+            self.first_of_twos.append(str(transcript.CDSs[0]))
+            self.second_of_twos.append(str(transcript.CDSs[1]))
 
     def creat_flanking_and_internal_exons(self, transcript):
-        transcript.CDSs.sort()
+        transcript.CDSs.sort(reverse=transcript.negative_dir)
         transcript.CDSs[0].type = "first_coding_exon"
         transcript.CDSs[-1].type = "last_coding_exon"
         self.flanking_exons.append(str(transcript.CDSs[0]))
@@ -76,7 +94,7 @@ class AnnotationsCreator(object):
             last_exon_end = exon.end_pos
 
     def creat_UTRs(self, transcript):
-
+        transcript.split_UTRs()
         for utr in transcript.UTRs5:
             self.UTRs5.append(Line.create_line_by_name_and_region("5UTR", utr,
                                                                   transcript.gene_name))
@@ -84,16 +102,17 @@ class AnnotationsCreator(object):
             self.UTRs3.append(Line.create_line_by_name_and_region("3UTR", utr,
                                                                   transcript.gene_name))
 
-
     def write_annotations(self, filename):
         with open(filename, 'a') as the_file:
             the_file.write(self.get_annotation_string(self.intergenic_lines))
             the_file.write(self.get_annotation_string(self.interonic_lines))
             the_file.write(self.get_annotation_string(self.flanking_exons))
             the_file.write(self.get_annotation_string(self.internal_exons))
+            the_file.write(self.get_annotation_string(self.one_exons))
+            the_file.write(self.get_annotation_string(self.first_of_twos))
+            the_file.write(self.get_annotation_string(self.second_of_twos))
             the_file.write(self.get_annotation_string(self.UTRs5))
             the_file.write(self.get_annotation_string(self.UTRs3))
-
 
     def get_annotation_string(self, annotation):
         if annotation == []:

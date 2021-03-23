@@ -4,7 +4,17 @@ class Line(object):
     DEFAULT_ATTR = ["chr1", "refGene", "type", "0", "0", ".", "+", ".", " "]
 
     def __init__(self, line):
+
+        if isinstance(line, Line):
+            self.__dict__.update(line.__dict__)
+            return
+
         self.written_line = line
+
+        if line[0] == "#":
+            self.type = 'comment'
+            return
+
         line = line.split("\t")
         self.chr = line[0]
         self.type = line[2]
@@ -13,11 +23,31 @@ class Line(object):
         self.length = int(self.end_pos) - int(self.start_pos)
         self.negative_dir = (line[6] == "-")
         self.frame = line[7]
-        self.attrs = {}
-        attrs = line[8].split(";")[:-1]
+        self.attrs = self.get_attributes(line[8])
+
+    @classmethod
+    def get_attributes(cls, line):
+        '''
+        decomposes the line attributes into a keyvalue dictionary
+        '''
+        tags = []
+        line_attributes = {}
+        attrs = line.split(";")[:-1]
         for attr in attrs:
             attr = attr.split()
-            self.attrs[attr[0]] = attr[1].split('\"')[1]
+            try:
+                int(attr[1])
+                line_attributes[attr[0]] = attr[1]
+            except ValueError:
+                if attr[0] == 'tag':
+                    tags.append(attr[1].split('\"')[1])
+                else:
+                    line_attributes[attr[0]] = attr[1].split('\"')[1]
+
+
+        line_attributes['tags'] = tags
+
+        return line_attributes
 
     @staticmethod
     def creat_line_by_name_and_corr(chrom, name, start_pos, end_pos,
@@ -59,7 +89,7 @@ class Line(object):
 
         for key, value in self.attrs.items():
             attr[8] += (key)
-            attr[8] += (" \"" + value + "\"; ")
+            attr[8] += (" \"" + ''.join(value) + "\"; ")
         return "\t".join(attr)
 
     @staticmethod

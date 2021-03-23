@@ -1,25 +1,40 @@
 from transcript import  Transcript, Transcripts
+from gene import Gene
 from line import Line
 from annotations_creator import AnnotationsCreator
 
-with open("hg38.refGene.gtf") as f:
+with open("gencode.v37.annotation.gtf") as f:
     LINES = f.readlines()
 
+current_gene = None
+
+types = {'None':0,
+         'first_transcript':0,
+         'MANE_Select':0,
+         'CCDS':0,
+         'transcript_support_level':0,
+         'level':0,
+         'length':0,
+         'only_transcript':0,
+         'one_rejected_transcript':0}
 transcripts = Transcripts()
 
 for idx, line in enumerate(LINES):
     line = Line(line)
 
-    if line.type == "transcript":
+    if line.type == "gene":
 
-        if transcripts.is_location_availble(line):
-            transcripts.add_transcript(line)
-        else:
-            transcripts.use_longer_transcript(line)
+        if current_gene and current_gene.transcript:
+            types[current_gene.type] += 1
+            transcripts.add_transcript(current_gene.transcript)
 
-    else:
-        transcripts.add_line(line)
+        current_gene = Gene(line)
+
+    elif current_gene:
+        current_gene.add_line(line)
+        #transcripts.add_line(line)
 
     Line.print_progres(idx, len(LINES))
 
+print(types)
 AnnotationsCreator(transcripts)

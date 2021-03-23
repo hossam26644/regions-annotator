@@ -20,24 +20,28 @@ class Line(object):
             self.attrs[attr[0]] = attr[1].split('\"')[1]
 
     @staticmethod
-    def creat_line_by_name_and_corr(chrom, name, start_pos, end_pos, sign="+"):
+    def creat_line_by_name_and_corr(chrom, name, start_pos, end_pos,
+                                    sign="+", gene_name="no_gene"):
+
         attrs = deepcopy(Line.DEFAULT_ATTR)
         attrs[0] = chrom
         attrs[2] = name
         attrs[3] = start_pos
         attrs[4] = end_pos
         attrs[6] = sign
+        attrs[8] = "gene_name \"" + gene_name + "\";"
         return "\t".join(attrs)
 
 
     @staticmethod
-    def create_line_by_name_and_region(name, region):
+    def create_line_by_name_and_region(name, region, gene_name='no_gene'):
         attrs = deepcopy(Line.DEFAULT_ATTR)
         attrs[0] = region.chr
         attrs[2] = name
         attrs[3] = region.start_pos
         attrs[4] = region.end_pos
         attrs[6] = "-" if region.negative_dir else "+"
+        attrs[8] = "gene_name \"" + gene_name + "\";"
 
         return "\t".join(attrs)
 

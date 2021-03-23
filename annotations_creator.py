@@ -63,8 +63,6 @@ class AnnotationsCreator(object):
             exon.type = "internal_exon"
             self.internal_exons.append(str(exon))
 
-
-
     def creat_intronics(self, transcript):
         transcript.exons.sort()
         last_exon_end = transcript.exons[0].end_pos
@@ -73,15 +71,18 @@ class AnnotationsCreator(object):
                                                                          "intron",
                                                                          last_exon_end,
                                                                          exon.start_pos,
-                                                                         sign="-" if exon.negative_dir else "+"))
+                                                                         sign="-" if exon.negative_dir else "+",
+                                                                         gene_name=transcript.gene_name))
             last_exon_end = exon.end_pos
 
     def creat_UTRs(self, transcript):
 
         for utr in transcript.UTRs5:
-            self.UTRs5.append(Line.create_line_by_name_and_region("5UTR", utr))
+            self.UTRs5.append(Line.create_line_by_name_and_region("5UTR", utr,
+                                                                  transcript.gene_name))
         for utr in transcript.UTRs3:
-            self.UTRs3.append(Line.create_line_by_name_and_region("3UTR", utr))
+            self.UTRs3.append(Line.create_line_by_name_and_region("3UTR", utr,
+                                                                  transcript.gene_name))
 
 
     def write_annotations(self, filename):
@@ -90,7 +91,6 @@ class AnnotationsCreator(object):
             the_file.write(self.get_annotation_string(self.interonic_lines))
             the_file.write(self.get_annotation_string(self.flanking_exons))
             the_file.write(self.get_annotation_string(self.internal_exons))
-            the_file.write(self.get_annotation_string(self.intergenic_lines))
             the_file.write(self.get_annotation_string(self.UTRs5))
             the_file.write(self.get_annotation_string(self.UTRs3))
 

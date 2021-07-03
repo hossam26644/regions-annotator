@@ -5,7 +5,7 @@ class Transcript(Line):
     def __init__(self, line):
 
         super(Transcript, self).__init__(line)
-
+        self.original_text = line.written_line
         self.length = int(self.end_pos) - int(self.start_pos)
         self.gene_id = line.attrs['gene_id']
         self.transcript_id = line.attrs['transcript_id']

@@ -3,9 +3,11 @@ from line import Line
 class AnnotationsCreator(object):
 
     def __init__(self, transcripts, filename='somefile.txt'):
-
+        filename="cairoGP.gtf"
+        self.transcripts = transcripts
         transcripts_dic = transcripts.transcripts
         self.clear_file(filename)
+        '''
         for chromosome in transcripts_dic.keys():
             self.transcripts = transcripts_dic[chromosome]
             self.transcript_keys = list(self.transcripts.keys())
@@ -21,7 +23,8 @@ class AnnotationsCreator(object):
             self.UTRs5 = []
             self.UTRs3 = []
             self.analyze_intergenic()
-            self.write_annotations(filename)
+        '''
+        self.write_annotations(filename)
 
     def analyze_intergenic(self):
         last_transcript_end = None
@@ -104,15 +107,11 @@ class AnnotationsCreator(object):
 
     def write_annotations(self, filename):
         with open(filename, 'a') as the_file:
-            the_file.write(self.get_annotation_string(self.intergenic_lines))
-            the_file.write(self.get_annotation_string(self.interonic_lines))
-            the_file.write(self.get_annotation_string(self.flanking_exons))
-            the_file.write(self.get_annotation_string(self.internal_exons))
-            the_file.write(self.get_annotation_string(self.one_exons))
-            the_file.write(self.get_annotation_string(self.first_of_twos))
-            the_file.write(self.get_annotation_string(self.second_of_twos))
-            the_file.write(self.get_annotation_string(self.UTRs5))
-            the_file.write(self.get_annotation_string(self.UTRs3))
+            for chromosome in self.transcripts.transcripts.keys():
+                transcripts = self.transcripts.transcripts[chromosome]
+                for transcript in transcripts.values():
+                    for cds in transcript.CDSs:
+                        the_file.write(cds.written_line)
 
     def get_annotation_string(self, annotation):
         if annotation == []:
